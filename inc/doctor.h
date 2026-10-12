@@ -23,7 +23,7 @@
 typedef struct {
     char doctor_id[10];     /* 医生编号，形如 D001，新增时自动生成 */
     char name[50];          /* 姓名 */
-    char gender[4];         /* 性别，如 "男" / "女" */
+    char gender[12];        /* 性别，如 "男" / "女"（长度取法见 patient.h 的说明） */
     char title[20];         /* 职称，如 "主治医师" */
     char dept[50];          /* 所属科室，如 "内科"。科室只是本字段的字符串，不单独建表 */
     char phone[20];         /* 联系电话 */
