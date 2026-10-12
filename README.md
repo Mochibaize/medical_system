@@ -1,45 +1,239 @@
 # 社区医疗服务中心信息管理系统
 
-C + MySQL 实现的社区医疗信息管理系统。
+C + MySQL 实现的社区医疗信息管理系统,4 人小组协作开发。
 
-## 依赖
+> **每个人在自己电脑上建自己的数据库。** 本项目不共享数据库,只共享 `init.sql` 建库脚本 —— 你 clone 下来之后,在自己机器上跑一遍脚本,就有了一套结构和预置数据完全一致的库,不会互相干扰。
 
-- gcc
-- MySQL 客户端开发库(`mysql_config` 可用,如 `mysql-devel` / `libmysqlclient-dev`)
+---
 
-## 编译
+## 一、环境要求
+
+在 Rocky Linux 上执行以下 5 条检查:
 
 ```bash
-make          # 生成 bin/medical_system
-make DEBUG=1  # 带调试符号
-make clean    # 清理
+gcc --version                          # 1. 编译器
+sudo systemctl status mysqld           # 2. MySQL 服务
+mysql_config --cflags --libs           # 3. MySQL 开发库
+git --version                          # 4. 版本控制
+mysql -u root -p                       # 5. 能登录 MySQL
 ```
 
-## 运行
+**5 条全过才算环境 OK。** 有任何一条不过,先解决它,别往下走。
 
-数据库连接参数通过环境变量传入,**不要把密码写进源码或提交到仓库**:
+| 报错 | 解决办法 |
+|------|----------|
+| `mysql_config: command not found` | `sudo dnf install mysql-community-devel` |
+| `Access denied` | 密码不对 |
+| `Can't connect` | MySQL 没启动 → `sudo systemctl start mysqld` |
+| `gcc: command not found` | `sudo dnf install gcc make` |
+
+---
+
+## 二、快速开始
+
+```bash
+# 1. 克隆项目
+git clone git@github.com:tpzdcc/medical_system.git
+cd medical_system
+
+# 2. 建库建表(用你自己的 MySQL 密码)
+mysql -u root -p < init.sql
+
+# 3. 验证: 应该看到 9 张表
+mysql -u root -p -e "use medical_system; show tables;"
+
+# 4. 编译
+make
+
+# 5. 运行(把密码换成你自己的)
+DB_PASSWORD='你的MySQL密码' ./bin/medical_system
+```
+
+第 5 步如果打印出 `db connect success`,环境就通了。
+
+---
+
+## 三、数据库配置
+
+连接参数**通过环境变量传入,不要把密码写进源码、更不要提交到仓库**:
 
 | 变量 | 默认值 | 说明 |
-| --- | --- | --- |
+|------|--------|------|
 | `DB_HOST` | `localhost` | 数据库地址 |
 | `DB_USER` | `root` | 用户名 |
-| `DB_PASSWORD` | 空 | 密码,未设置时启动会提示 |
+| `DB_PASSWORD` | (空) | 密码,**未设置时启动会提示** |
 | `DB_NAME` | `medical_system` | 库名 |
 | `DB_PORT` | `3306` | 端口 |
 
-例如:
+最简用法只需要给 `DB_PASSWORD`,其余走默认值:
 
 ```bash
 DB_PASSWORD='你的密码' ./bin/medical_system
 ```
 
-## 目录结构
+嫌每次输入麻烦,可以写进 `~/.bashrc`:
+
+```bash
+echo "export DB_PASSWORD='你的密码'" >> ~/.bashrc && source ~/.bashrc
+```
+
+> ⚠️ 检查一下:提交前先跑 `git diff --cached`,确认没有把自己的密码带进去。仓库是公开的。
+
+### 表结构
+
+`init.sql` 会创建 9 张表,并预置少量测试数据:
+
+| 表名 | 说明 |
+|------|------|
+| `t_admin` | 管理员 |
+| `t_doctor` | 医生 |
+| `t_patient` | 患者 |
+| `t_medicine` | 药品 |
+| `t_appointment` | 预约挂号 |
+| `t_visit_record` | 就诊记录 |
+| `t_prescription` | 处方主表 |
+| `t_presc_detail` | 处方明细 |
+| `t_medical_record` | 病历 |
+
+预置账号:
+
+| 角色 | 用户名 | 密码 |
+|------|--------|------|
+| 管理员 | `admin` | `123456` |
+| 医生 | `D001` | `123456` |
+
+> 课程项目为简化实现,密码是明文存储的,不要用于任何真实场景。
+
+**改了表结构怎么办?** `init.sql` 是**唯一的权威版本**。任何表结构变更都必须改这个文件并提交,队友 `git pull` 后重跑一遍脚本同步。不要各自在数据库里手动改表 —— 那样集成时必然对不上。
+
+---
+
+## 四、目录结构
 
 ```
-src/    主程序
-data/   数据访问层(MySQL)
-lib/    公共工具库
-inc/    头文件
-obj/    编译中间产物(不入库)
-bin/    可执行文件(不入库)
+src/      各模块实现
+data/     数据访问层(MySQL 封装)
+lib/      公共工具库
+inc/      头文件(接口定义,先定死)
+obj/      编译中间产物(不入库)
+bin/      可执行文件(不入库)
+init.sql  建库建表脚本
+Makefile
 ```
+
+常用命令:
+
+```bash
+make          # 编译
+make DEBUG=1  # 带调试符号编译(可用 gdb)
+make clean    # 清理
+```
+
+---
+
+## 五、协作规范
+
+### 分支
+
+| 分支 | 用途 |
+|------|------|
+| `master` | 稳定版本,只接受从 `develop` 合并 |
+| `develop` | 集成分支 |
+| `feature/xxx` | 各人自己的开发分支 |
+
+**不要直接在 `master` 或 `develop` 上写代码。** 每个人拉自己的分支:
+
+```bash
+git switch develop && git pull
+git switch -c feature/patient    # 换成自己的模块名
+git push -u origin feature/patient
+```
+
+**每天 push 一次,每周合并到 `develop` 一次。**
+
+### 分工
+
+| 人 | 负责模块 | 分支 |
+|----|----------|------|
+| A | 登录 + 患者管理 | `feature/auth-patient` |
+| B | 挂号 + 就诊 | `feature/appointment-visit` |
+| C | 处方 + 药品 | `feature/prescription-medicine` |
+| D | 医生 + 病历 + 管理员菜单 | `feature/doctor-record` |
+
+### 接口先行(最关键的一步)
+
+**动手写业务代码之前,先把接口定死。** 每个模块在 `inc/` 下建一个头文件,声明函数签名和结构体;对应的 `.c` 先写空实现直接返回 `ERR_OK`,保证谁都能编译通过。
+
+```c
+/* inc/patient.h */
+#ifndef PATIENT_H
+#define PATIENT_H
+#include "db_mysql.h"
+
+typedef struct {
+    char patient_id[20];
+    char name[50];
+    char gender[4];
+    int  age;
+    char id_card[18];
+    char phone[20];
+    char address[200];
+    char username[50];
+    char password[100];
+    int  status;
+} Patient;
+
+int patient_register(DB_HANDLE* db, const Patient* p);
+int patient_query_by_id(DB_HANDLE* db, const char* id, Patient* out);
+int patient_update_self(DB_HANDLE* db, const char* id, const char* phone);
+int patient_delete(DB_HANDLE* db, const char* id);
+
+#endif
+```
+
+```c
+/* src/patient.c —— 先写空实现占位 */
+#include "patient.h"
+
+int patient_register(DB_HANDLE* db, const Patient* p) {
+    return ERR_OK;  /* TODO */
+}
+```
+
+公共错误码和角色定义统一放 `inc/common.h`:
+
+```c
+#define ERR_OK           0
+#define ERR_DB_CONN    -1
+#define ERR_DB_EXEC    -2
+#define ERR_DUPLICATE  -3
+#define ERR_NOT_FOUND  -4
+#define ERR_NO_STOCK   -5
+#define ERR_PERM       -6
+#define ERR_LOCKED     -7
+
+#define ROLE_ADMIN   1
+#define ROLE_DOCTOR  2
+#define ROLE_PATIENT 3
+```
+
+**为什么先定接口:** 接口定死后,4 个人各自往自己的 `.c` 里填逻辑,互不干扰,合并时不会冲突爆炸;谁都能随时编译通过,不会因为别人还没写完而卡住。
+
+---
+
+## 六、常见问题
+
+**编译报 `mysql/mysql.h: No such file or directory`**
+缺开发库:`sudo dnf install mysql-community-devel`
+
+**启动只打印 "未设置 DB_PASSWORD 环境变量" 然后连接失败**
+没传密码,用 `DB_PASSWORD='你的密码' ./bin/medical_system` 运行。
+
+**`db connect error: Access denied`**
+密码错了,或库没建。先跑 `mysql -u root -p -e "show databases;"` 确认 `medical_system` 存在。
+
+**改了 `init.sql` 之后表还是旧的**
+脚本开头是 `DROP DATABASE IF EXISTS`,重跑会**清空重建**。确认没有你要保留的数据后再执行。
+
+**`make` 报 `mysql_config: not found`**
+Makefile 依赖 `mysql_config`,没装开发库就会这样,见第一条。
