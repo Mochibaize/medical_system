@@ -133,9 +133,9 @@ make clean    # 清理
 
 ## 五、协作规范
 
-### 分组
+### 各组分工
 
-按系统角色分成三组,**每组独立负责该角色下的全部功能**,组内人员自行安排:
+各组从主仓库 clone 代码后自行开发,**做完提交回来,由我审核后合并**。分支怎么建各组自己定,不限制。
 
 | 组 | 负责范围 |
 |----|----------|
@@ -143,27 +143,9 @@ make clean    # 清理
 | 医生组 | 医生登录、接诊、开处方、写病历 |
 | 患者组 | 患者注册登录、挂号预约、查询本人记录 |
 
-### 分支
+### 别两组改到同一张表
 
-| 分支 | 用途 |
-|------|------|
-| `master` | 稳定版本,只接受从 `develop` 合并 |
-| `develop` | 集成分支 |
-| `feature/admin` | 管理员组的开发分支 |
-| `feature/doctor` | 医生组的开发分支 |
-| `feature/patient` | 患者组的开发分支 |
-
-**各组只在自己的分支上写代码,不要直接动 `master` 和 `develop`。**
-
-```bash
-git switch develop && git pull
-git switch -c feature/admin      # 换成自己组的分支
-git push -u origin feature/admin
-```
-
-### 表归属
-
-三组独立开发,最容易出问题的是**两组改到同一张表**。按角色划分归属:
+各组独立开发,最容易出问题的是两组改到同一张表。按角色划分归属:
 
 | 表 | 主要归属 |
 |----|----------|
@@ -174,64 +156,16 @@ git push -u origin feature/admin
 
 **改表结构一律改 `init.sql` 并提交**,不要在数据库里手动改 —— 否则三组各自建库后结构不一致,集成时对不上。
 
-### 接口先行(最关键的一步)
+### 写代码前先看一眼 `inc/common.h`
 
-**动手写业务代码之前,先把接口定死。** 每个模块在 `inc/` 下建一个头文件,声明函数签名和结构体;对应的 `.c` 先写空实现直接返回 `ERR_OK`,保证谁都能编译通过。
+公共的常量已经定义好了,都在这个文件里,**别自己另起一套**:
 
-```c
-/* inc/patient.h */
-#ifndef PATIENT_H
-#define PATIENT_H
-#include "db_mysql.h"
+- **函数返回值统一用错误码**:成功返回 `ERR_OK`,失败返回 `ERR_DB_CONN`、`ERR_NOT_FOUND`、`ERR_NO_STOCK` 等,不要返回自己编的数字
+- **角色**:`ROLE_ADMIN`(管理员)、`ROLE_DOCTOR`(医生)、`ROLE_PATIENT`(患者)
+- **预约状态**:`APPOINT_WAIT`(待就诊)、`APPOINT_VISITED`(已就诊)、`APPOINT_CANCELED`(已取消)
+- **库存预警**:`LOW_STOCK`
 
-typedef struct {
-    char patient_id[20];
-    char name[50];
-    char gender[4];
-    int  age;
-    char id_card[18];
-    char phone[20];
-    char address[200];
-    char username[50];
-    char password[100];
-    int  status;
-} Patient;
-
-int patient_register(DB_HANDLE* db, const Patient* p);
-int patient_query_by_id(DB_HANDLE* db, const char* id, Patient* out);
-int patient_update_self(DB_HANDLE* db, const char* id, const char* phone);
-int patient_delete(DB_HANDLE* db, const char* id);
-
-#endif
-```
-
-```c
-/* src/patient.c —— 先写空实现占位 */
-#include "patient.h"
-
-int patient_register(DB_HANDLE* db, const Patient* p) {
-    return ERR_OK;  /* TODO */
-}
-```
-
-公共错误码和角色定义统一放 `inc/common.h`:
-
-```c
-#define ERR_OK           0
-#define ERR_DB_CONN    -1
-#define ERR_DB_EXEC    -2
-#define ERR_DUPLICATE  -3
-#define ERR_NOT_FOUND  -4
-#define ERR_NO_STOCK   -5
-#define ERR_PERM       -6
-#define ERR_LOCKED     -7
-
-#define ROLE_ADMIN   1
-#define ROLE_DOCTOR  2
-#define ROLE_PATIENT 3
-```
-
-**为什么先定接口:** 接口定死后,三组各自往自己的 `.c` 里填逻辑,互不干扰,合并时不会冲突爆炸;谁都能随时编译通过,不会因为别人还没写完而卡住。
+自己模块的结构体和函数声明放 `inc/` 下自己的头文件(比如 `inc/patient.h`),实现放 `src/`。
 
 ---
 
