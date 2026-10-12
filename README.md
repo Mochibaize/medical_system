@@ -140,9 +140,16 @@ make clean    # 清理
 
 | 组 | 负责模块 |
 |----|----------|
-| 管理员组 | M02 医生管理、M06 药品管理、M01 患者档案的后台维护(查/改/注销/导出) |
-| 医生组 | M04 就诊记录、M05 处方管理、M07 病历管理、M03 中的接诊部分 |
-| 患者组 | M01 患者注册、M03 预约挂号(挂号/取消/查询)、M08 中的患者注册与登录 |
+| 管理员组 | M02 医生管理、M06 药品管理、M01 患者档案的后台维护(查/改/注销/导出)、`menu_admin.c` |
+| 医生组 | M04 就诊记录、M05 处方管理、M07 病历管理、`menu_doctor.c` |
+| 患者组 | M01 患者注册、M03 预约挂号(挂号/取消/查询)、`menu_patient.c` |
+
+**M03 挂号预约是唯一跨组的模块**,两组都要用 `appointment.c` 里的函数。为了避免两组改同一个文件,这个文件**整个归患者组**:
+
+- 患者组负责写 `appointment.c` 里的**全部函数**,包括医生要用的 `appointment_query_by_doctor_today`(查当日待就诊列表)
+- 医生组只**调用**它,不修改这个文件
+
+医生组如果需要这个函数改行为(比如返回的字段不够用),在群里说一声,由患者组改。
 
 ### 别两组改到同一张表
 
@@ -167,12 +174,15 @@ make clean    # 清理
 |------|--------|----------|--------|
 | M01 患者管理 | `inc/patient.h` | `src/patient.c` | 患者组 |
 | M02 医生管理 | `inc/doctor.h` | `src/doctor.c` | 管理员组 |
-| M03 挂号预约 | `inc/appointment.h` | `src/appointment.c` | 患者组 + 医生组 |
+| M03 挂号预约 | `inc/appointment.h` | `src/appointment.c` | 患者组 |
 | M04 就诊记录 | `inc/visit.h` | `src/visit.c` | 医生组 |
 | M05 处方管理 | `inc/prescription.h` | `src/prescription.c` | 医生组 |
 | M06 药品管理 | `inc/medicine.h` | `src/medicine.c` | 管理员组 |
 | M07 病历管理 | `inc/medical_record.h` | `src/medical_record.c` | 医生组 |
 | M08 登录与用户 | `inc/auth.h` | `src/auth.c` | 三组共用 |
+| 管理员菜单 | `inc/menu.h` | `src/menu_admin.c` | 管理员组 |
+| 医生工作台 | `inc/menu.h` | `src/menu_doctor.c` | 医生组 |
+| 患者工作台 | `inc/menu.h` | `src/menu_patient.c` | 患者组 |
 
 **不要改头文件里的函数名和参数。** 三组都按这个签名写代码,谁改了对不上。觉得签名不合适,先在群里说一声再改。
 
