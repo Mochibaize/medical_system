@@ -115,7 +115,6 @@ CREATE TABLE t_medical_record (
     allergy_history VARCHAR(200),
     past_history    VARCHAR(200),
     family_history  VARCHAR(200),
-    create_time     DATETIME DEFAULT CURRENT_TIMESTAMP,
     update_time     DATETIME DEFAULT CURRENT_TIMESTAMP
 );
 

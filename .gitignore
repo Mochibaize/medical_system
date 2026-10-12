@@ -4,6 +4,7 @@ lib/*.a
 lib/*.so
 logs/
 backup/
+data/*.txt
 *.swp
 *~
 .DS_Store

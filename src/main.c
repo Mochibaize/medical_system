@@ -1,6 +1,5 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include "common.h"
 #include "db_mysql.h"
 
 static void show_main_menu(void) {
