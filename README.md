@@ -1,6 +1,6 @@
 # 社区医疗服务中心信息管理系统
 
-C + MySQL 实现的社区医疗信息管理系统,4 人小组协作开发。
+C + MySQL 实现的社区医疗信息管理系统。5 人小组,**按角色分成三组独立开发**。
 
 > **每个人在自己电脑上建自己的数据库。** 本项目不共享数据库,只共享 `init.sql` 建库脚本 —— 你 clone 下来之后,在自己机器上跑一遍脚本,就有了一套结构和预置数据完全一致的库,不会互相干扰。
 
@@ -133,32 +133,46 @@ make clean    # 清理
 
 ## 五、协作规范
 
+### 分组
+
+按系统角色分成三组,**每组独立负责该角色下的全部功能**,组内人员自行安排:
+
+| 组 | 负责范围 |
+|----|----------|
+| 管理员组 | 管理员登录、医生管理、药品管理、账号管理 |
+| 医生组 | 医生登录、接诊、开处方、写病历 |
+| 患者组 | 患者注册登录、挂号预约、查询本人记录 |
+
 ### 分支
 
 | 分支 | 用途 |
 |------|------|
 | `master` | 稳定版本,只接受从 `develop` 合并 |
 | `develop` | 集成分支 |
-| `feature/xxx` | 各人自己的开发分支 |
+| `feature/admin` | 管理员组的开发分支 |
+| `feature/doctor` | 医生组的开发分支 |
+| `feature/patient` | 患者组的开发分支 |
 
-**不要直接在 `master` 或 `develop` 上写代码。** 每个人拉自己的分支:
+**各组只在自己的分支上写代码,不要直接动 `master` 和 `develop`。**
 
 ```bash
 git switch develop && git pull
-git switch -c feature/patient    # 换成自己的模块名
-git push -u origin feature/patient
+git switch -c feature/admin      # 换成自己组的分支
+git push -u origin feature/admin
 ```
 
-**每天 push 一次,每周合并到 `develop` 一次。**
+### 表归属
 
-### 分工
+三组独立开发,最容易出问题的是**两组改到同一张表**。按角色划分归属:
 
-| 人 | 负责模块 | 分支 |
-|----|----------|------|
-| A | 登录 + 患者管理 | `feature/auth-patient` |
-| B | 挂号 + 就诊 | `feature/appointment-visit` |
-| C | 处方 + 药品 | `feature/prescription-medicine` |
-| D | 医生 + 病历 + 管理员菜单 | `feature/doctor-record` |
+| 表 | 主要归属 |
+|----|----------|
+| `t_admin`、`t_doctor`、`t_medicine` | 管理员组 |
+| `t_patient` | 患者组 |
+| `t_appointment` | 患者组(挂号)、医生组(查看与确认) |
+| `t_visit_record`、`t_prescription`、`t_presc_detail`、`t_medical_record` | 医生组 |
+
+**改表结构一律改 `init.sql` 并提交**,不要在数据库里手动改 —— 否则三组各自建库后结构不一致,集成时对不上。
 
 ### 接口先行(最关键的一步)
 
@@ -217,7 +231,7 @@ int patient_register(DB_HANDLE* db, const Patient* p) {
 #define ROLE_PATIENT 3
 ```
 
-**为什么先定接口:** 接口定死后,4 个人各自往自己的 `.c` 里填逻辑,互不干扰,合并时不会冲突爆炸;谁都能随时编译通过,不会因为别人还没写完而卡住。
+**为什么先定接口:** 接口定死后,三组各自往自己的 `.c` 里填逻辑,互不干扰,合并时不会冲突爆炸;谁都能随时编译通过,不会因为别人还没写完而卡住。
 
 ---
 
