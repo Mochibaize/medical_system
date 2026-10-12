@@ -1,0 +1,9 @@
+obj/
+bin/
+lib/*.a
+lib/*.so
+logs/
+backup/
+*.swp
+*~
+.DS_Store
