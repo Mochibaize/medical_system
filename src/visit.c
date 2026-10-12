@@ -32,6 +32,13 @@ int visit_query_by_doctor(DB_HANDLE* db, const char* doctor_id,
     return 0;  /* TODO: SELECT ... FROM t_visit_record WHERE doctor_id=? */
 }
 
+int visit_query_all(DB_HANDLE* db, VisitRecord** out_list, int* out_count) {
+    (void)db;
+    if (out_list)  *out_list  = NULL;
+    if (out_count) *out_count = 0;
+    return 0;  /* TODO: SELECT 全部就诊记录（管理员用） */
+}
+
 void visit_list_free(VisitRecord* list) {
     (void)list;
     /* TODO: free(list) */

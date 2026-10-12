@@ -29,6 +29,13 @@ int medical_record_query_by_patient(DB_HANDLE* db, const char* patient_id,
     return 0;  /* TODO: SELECT ... FROM t_medical_record WHERE patient_id=? */
 }
 
+int medical_record_query_all(DB_HANDLE* db, MedicalRecord** out_list, int* out_count) {
+    (void)db;
+    if (out_list)  *out_list  = NULL;
+    if (out_count) *out_count = 0;
+    return 0;  /* TODO: SELECT 全部病历（管理员用） */
+}
+
 void medical_record_list_free(MedicalRecord* list) {
     (void)list;
     /* TODO: free(list) */

@@ -42,6 +42,13 @@ int prescription_query_by_id(DB_HANDLE* db, int presc_id,
     return 0;  /* TODO: 查主表 + 查 t_presc_detail 明细，两块都返回 */
 }
 
+int prescription_query_all(DB_HANDLE* db, Prescription** out_list, int* out_count) {
+    (void)db;
+    if (out_list)  *out_list  = NULL;
+    if (out_count) *out_count = 0;
+    return 0;  /* TODO: SELECT 全部处方（管理员用） */
+}
+
 void prescription_list_free(Prescription* list) {
     (void)list;
     /* TODO: free(list) */

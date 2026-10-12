@@ -12,12 +12,18 @@
 #include <stdlib.h>
 #include <string.h>
 
+/* 登录失败计数：用户名 -> 连续失败次数 / 锁定到的时刻
+ * 见 auth.h 的【锁定状态存在哪】说明，不要为这个去改表结构 */
+/* TODO: 在这里定义一个 static 数组，供 user_login 记录失败次数和锁定时间 */
+
 int user_login(DB_HANDLE* db, int role, const char* username,
                const char* password, LoginUser* out) {
     (void)db; (void)role; (void)username; (void)password; (void)out;
-    return 0;  /* TODO: 按 role 决定查 t_admin / t_doctor / t_patient，
+    return 0;  /* TODO: 先查上面的 static 表，锁定期内直接返回 -7；
+                *       按 role 决定查 t_admin / t_doctor / t_patient，
                 *       校验密码和 status=1，回填 out->id / name / role；
-                *       连续 5 次失败要锁定 10 分钟（返回 -7） */
+                *       失败累加次数，满 5 次记录锁定 10 分钟并返回 -7，
+                *       成功则清零 */
 }
 
 int user_register_patient(DB_HANDLE* db, Patient* p) {

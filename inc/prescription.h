@@ -104,6 +104,16 @@ int prescription_query_by_id(DB_HANDLE* db, int presc_id,
                              PrescDetail** out_items, int* out_item_count);
 
 /* --------------------------------------------------------------------------
+ * 查询全部处方（管理员用，对应管理员主菜单"处方查询"）
+ * 参数：db         已连接的数据库句柄
+ *       out_list   [出参] 函数内部 malloc 出数组，
+ *                  用完必须调 prescription_list_free
+ *       out_count  [出参] 结果条数
+ * 返回：0 成功（可能 out_count 为 0）；-2 SQL 执行失败
+ * -------------------------------------------------------------------------- */
+int prescription_query_all(DB_HANDLE* db, Prescription** out_list, int* out_count);
+
+/* --------------------------------------------------------------------------
  * 释放 prescription_query_by_patient 返回的数组
  * 参数：list  prescription_query_by_patient 得到的数组，传 NULL 也安全
  * -------------------------------------------------------------------------- */

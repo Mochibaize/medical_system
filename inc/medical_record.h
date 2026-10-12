@@ -68,6 +68,16 @@ int medical_record_query_by_patient(DB_HANDLE* db, const char* patient_id,
                                     MedicalRecord** out_list, int* out_count);
 
 /* --------------------------------------------------------------------------
+ * 查询全部病历（管理员用，对应管理员主菜单"病历查询"）
+ * 参数：db         已连接的数据库句柄
+ *       out_list   [出参] 函数内部 malloc 出数组，
+ *                  用完必须调 medical_record_list_free
+ *       out_count  [出参] 结果条数
+ * 返回：0 成功（可能 out_count 为 0）；-2 SQL 执行失败
+ * -------------------------------------------------------------------------- */
+int medical_record_query_all(DB_HANDLE* db, MedicalRecord** out_list, int* out_count);
+
+/* --------------------------------------------------------------------------
  * 释放 medical_record_query_by_patient 返回的数组
  * 参数：list  medical_record_query_by_patient 得到的数组，传 NULL 也安全
  * -------------------------------------------------------------------------- */
